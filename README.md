@@ -74,9 +74,9 @@ testmydev/
    ```
 
 5. **Access the application:**
-   - Application: http://localhost:8080/testmydev
-   - H2 Console: http://localhost:8080/testmydev/h2-console
-   - Health Check: http://localhost:8080/testmydev/actuator/health
+   - Application: http://localhost:8081/testmydev
+   - H2 Console: http://localhost:8081/testmydev/h2-console
+   - Health Check: http://localhost:8081/testmydev/actuator/health
 
 ### Troubleshooting Build Issues
 
@@ -98,6 +98,15 @@ If you encounter Maven plugin issues:
    ./mvnw clean compile -U
    ```
 
+4. **Port conflict (if port 8081 is also in use):**
+   ```bash
+   # Check what's using the port
+   lsof -i :8081
+   
+   # Or run on a different port
+   ./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8082
+   ```
+
 ### API Endpoints
 
 | Method | Endpoint | Description |
@@ -111,13 +120,13 @@ If you encounter Maven plugin issues:
 
 ```bash
 # Basic hello
-curl http://localhost:8080/testmydev/api/hello
+curl http://localhost:8081/testmydev/api/hello
 
 # Personalized hello
-curl http://localhost:8080/testmydev/api/hello/John
+curl http://localhost:8081/testmydev/api/hello/John
 
 # Health check
-curl http://localhost:8080/testmydev/api/health
+curl http://localhost:8081/testmydev/api/health
 ```
 
 ### Running Tests
@@ -140,7 +149,7 @@ The application uses H2 in-memory database by default:
 - **URL:** `jdbc:h2:mem:testdb`
 - **Username:** `sa`
 - **Password:** `password`
-- **Console:** http://localhost:8080/testmydev/h2-console
+- **Console:** http://localhost:8081/testmydev/h2-console
 
 ## Development
 
