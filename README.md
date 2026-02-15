@@ -9,12 +9,13 @@ A sample Spring Boot application with Maven for testing and development purposes
 - **H2 In-Memory Database** for development
 - **Spring Data JPA** for data persistence
 - **Spring Boot Actuator** for monitoring
-- **Maven** build system
+- **Maven** build system with wrapper
 
 ## Project Structure
 
 ```
 testmydev/
+├── .mvn/wrapper/                              # Maven wrapper files
 ├── src/
 │   ├── main/
 │   │   ├── java/com/example/testmydev/
@@ -28,7 +29,10 @@ testmydev/
 │   └── test/
 │       └── java/com/example/testmydev/
 │           └── TestmydevApplicationTests.java # Test class
+├── mvnw                                       # Maven wrapper script (Unix)
+├── mvnw.cmd                                   # Maven wrapper script (Windows)
 ├── pom.xml                                    # Maven configuration
+├── .gitignore                                 # Git ignore rules
 └── README.md                                  # This file
 ```
 
@@ -37,7 +41,9 @@ testmydev/
 ### Prerequisites
 
 - Java 17 or higher
-- Maven 3.6 or higher
+- Git
+
+**Note:** Maven is not required as the project includes Maven Wrapper (`mvnw`).
 
 ### Running the Application
 
@@ -47,20 +53,50 @@ testmydev/
    cd testmydev
    ```
 
-2. **Build the project:**
+2. **Make the Maven wrapper executable (Unix/Mac):**
    ```bash
-   mvn clean compile
+   chmod +x mvnw
    ```
 
-3. **Run the application:**
+3. **Clean and compile the project:**
    ```bash
-   mvn spring-boot:run
+   ./mvnw clean compile
    ```
 
-4. **Access the application:**
+4. **Run the application:**
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+   **Alternative for Windows:**
+   ```cmd
+   mvnw.cmd spring-boot:run
+   ```
+
+5. **Access the application:**
    - Application: http://localhost:8080/testmydev
    - H2 Console: http://localhost:8080/testmydev/h2-console
    - Health Check: http://localhost:8080/testmydev/actuator/health
+
+### Troubleshooting Build Issues
+
+If you encounter Maven plugin issues:
+
+1. **Clear local Maven repository cache:**
+   ```bash
+   rm -rf ~/.m2/repository/org/springframework/boot/
+   ```
+
+2. **Use Maven wrapper instead of system Maven:**
+   ```bash
+   ./mvnw clean compile
+   ./mvnw spring-boot:run
+   ```
+
+3. **Force update dependencies:**
+   ```bash
+   ./mvnw clean compile -U
+   ```
 
 ### API Endpoints
 
@@ -87,13 +123,13 @@ curl http://localhost:8080/testmydev/api/health
 ### Running Tests
 
 ```bash
-mvn test
+./mvnw test
 ```
 
 ### Building JAR
 
 ```bash
-mvn clean package
+./mvnw clean package
 java -jar target/testmydev-0.0.1-SNAPSHOT.jar
 ```
 
@@ -123,7 +159,7 @@ This is a sample project for learning and testing Spring Boot features. Feel fre
 - Spring Data JPA
 - Spring Boot Actuator
 - H2 Database
-- Maven
+- Maven 3.9.6 (via wrapper)
 - JUnit 5
 
 ## License
