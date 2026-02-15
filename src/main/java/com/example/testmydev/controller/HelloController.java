@@ -10,10 +10,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
 public class HelloController {
 
-    @GetMapping("/hello")
+    @GetMapping("/")
+    public Map<String, Object> home() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Welcome to TestMyDev Spring Boot Application!");
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", "success");
+        response.put("endpoints", Map.of(
+            "hello", "/api/hello",
+            "personalized_hello", "/api/hello/{name}",
+            "health", "/api/health",
+            "actuator_health", "/actuator/health",
+            "h2_console", "/h2-console"
+        ));
+        return response;
+    }
+
+    @GetMapping("/api/hello")
     public Map<String, Object> hello() {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Hello from Spring Boot!");
@@ -22,7 +37,7 @@ public class HelloController {
         return response;
     }
 
-    @GetMapping("/hello/{name}")
+    @GetMapping("/api/hello/{name}")
     public Map<String, Object> helloName(@PathVariable String name) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Hello, " + name + "!");
@@ -31,7 +46,7 @@ public class HelloController {
         return response;
     }
 
-    @GetMapping("/health")
+    @GetMapping("/api/health")
     public Map<String, Object> health() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
