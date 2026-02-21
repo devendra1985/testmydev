@@ -15,6 +15,8 @@ pipeline {
                 // git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
             }
         }
+    }
+}
         
 //         stage('Build Docker Image') {
 //             steps {
