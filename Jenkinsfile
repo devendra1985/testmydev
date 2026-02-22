@@ -40,6 +40,23 @@ pipeline {
                 }
             }
         }
+        
+        stage('Update Deployment Manifest') {
+            steps {
+                script {
+                    sh """
+                        # Update the container image in the deployment manifest
+                        # Replace the image line with the new Docker image and tag
+                        sed -i.bak 's|image:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
+                        # Remove backup file
+                        rm -f kube/manf.yaml.bak
+                        # Display the updated manifest
+                        echo "Updated deployment manifest with image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        cat kube/manf.yaml
+                    """
+                }
+            }
+        }
     }
     
     post {
