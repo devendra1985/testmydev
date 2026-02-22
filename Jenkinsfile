@@ -3,6 +3,7 @@ pipeline {
     
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        GIT_CREDENTIALS = credentials('github-credentials')
         DOCKER_IMAGE = 'taledevendra/my-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
     }
@@ -53,6 +54,45 @@ pipeline {
                         # Display the updated manifest
                         echo "Updated deployment manifest with image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
                         cat kube/manf.yaml
+                    """
+                }
+            }
+        }
+        
+        stage('Commit and Push to Git') {
+            steps {
+                script {
+                    sh """
+                        # Configure git user (if not already configured)
+                        git config user.name "Jenkins" || true
+                        git config user.email "jenkins@example.com" || true
+                        
+                        # Get the current branch name
+                        BRANCH_NAME=\$(git rev-parse --abbrev-ref HEAD)
+                        echo "Current branch: \$BRANCH_NAME"
+                        
+                        # Add the updated manifest file
+                        git add kube/manf.yaml
+                        
+                        # Check if there are changes to commit
+                        if git diff --staged --quiet; then
+                            echo "No changes to commit in kube/manf.yaml"
+                        else
+                            # Commit the changes
+                            git commit -m "Update deployment manifest with image ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                            
+                            # Push to the repository
+                            # Try pushing with existing credentials from checkout scm
+                            if git push origin \$BRANCH_NAME; then
+                                echo "Successfully pushed updated manifest to repository"
+                            else
+                                echo "Push failed with existing credentials, attempting with explicit credentials..."
+                                # Fallback: use credentials from environment
+                                git remote set-url origin https://\${GIT_CREDENTIALS_USR}:\${GIT_CREDENTIALS_PSW}@github.com/devendra1985/testmydev.git
+                                git push origin \$BRANCH_NAME
+                                echo "Successfully pushed updated manifest to repository"
+                            fi
+                        fi
                     """
                 }
             }
