@@ -68,17 +68,31 @@ spec:
   clusterIP: None
 ---
 # ============================================================
-# Spring Boot App Deployment
+# Spring Boot App - Argo Rollout (Canary)
 # ============================================================
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: inventory-app
 spec:
   replicas: 1
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: inventory-app
+  strategy:
+    canary:
+      canaryService: inventory-app-canary
+      stableService: inventory-app
+      steps:
+      - setWeight: 20
+      - pause: {duration: 30s}
+      - setWeight: 40
+      - pause: {duration: 30s}
+      - setWeight: 60
+      - pause: {duration: 30s}
+      - setWeight: 80
+      - pause: {duration: 30s}
   template:
     metadata:
       labels:
@@ -107,9 +121,21 @@ spec:
               name: mysql-secret
               key: mysql-root-password
         imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /testmydev/actuator/health
+            port: 8087
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /testmydev/actuator/health
+            port: 8087
+          initialDelaySeconds: 60
+          periodSeconds: 30
 ---
 # ============================================================
-# Spring Boot App Service
+# Stable Service (receives production traffic)
 # ============================================================
 apiVersion: v1
 kind: Service
@@ -117,6 +143,23 @@ metadata:
   name: inventory-app
 spec:
   type: NodePort
+  selector:
+    app: inventory-app
+  ports:
+  - port: 8087
+    targetPort: 8087
+    protocol: TCP
+    name: http
+---
+# ============================================================
+# Canary Service (receives canary traffic during rollout)
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-app-canary
+spec:
+  type: ClusterIP
   selector:
     app: inventory-app
   ports:
