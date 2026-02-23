@@ -1,14 +1,15 @@
-# Use official nginx image
-FROM nginx:alpine
+# Stage 1: Build the application
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+COPY mvnw .
+COPY .mvn ./.mvn
+RUN mvn clean package -DskipTests
 
-# Remove default nginx website
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy your static files to nginx html directory
-COPY html/ /usr/share/nginx/html/
-
-# Expose port 80
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8087
+ENTRYPOINT ["java", "-jar", "app.jar"]
