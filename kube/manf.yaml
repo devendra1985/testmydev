@@ -1,4 +1,18 @@
 # ============================================================
+# MySQL Secret (base64 encoded credentials)
+# To generate: echo -n 'yourvalue' | base64
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  mysql-root-password: cm9vdHBhc3N3b3Jk       # rootpassword
+  mysql-database: aW52ZW50b3J5X2Ri             # inventory_db
+  mysql-username: cm9vdA==                      # root
+---
+# ============================================================
 # MySQL Deployment
 # ============================================================
 apiVersion: apps/v1
@@ -22,9 +36,15 @@ spec:
           - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: rootpassword
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
         - name: MYSQL_DATABASE
-          value: inventory_db
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-database
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
@@ -77,9 +97,15 @@ spec:
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:mysql://mysql:3306/inventory_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
         - name: SPRING_DATASOURCE_USERNAME
-          value: "root"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-username
         - name: SPRING_DATASOURCE_PASSWORD
-          value: "rootpassword"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
         imagePullPolicy: Always
 ---
 # ============================================================
