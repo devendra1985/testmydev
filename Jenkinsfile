@@ -6,12 +6,36 @@ pipeline {
         DOCKER_IMAGE = 'taledevendra/my-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         GIT_REPO = 'github.com/devendra1985/testmydev.git'
+        // SonarQube (self-hosted) defaults. Override at job level if needed.
+        SONAR_HOST_URL = 'http://host.docker.internal:9002'
+        SONAR_PROJECT_KEY = 'testmydev'
     }
     
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Sonar Scan') {
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        set -euxo pipefail
+
+                        # Ensure Maven wrapper is executable
+                        chmod +x mvnw
+
+                        # Build + test + Sonar analysis (no Jenkins Sonar plugin required)
+                        ./mvnw -B clean verify sonar:sonar \
+                          -Dsonar.host.url="${SONAR_HOST_URL}" \
+                          -Dsonar.login="${SONAR_TOKEN}" \
+                          -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+                          -Dsonar.projectName="${SONAR_PROJECT_KEY}" \
+                          -Dsonar.java.binaries=target/classes
+                    '''
+                }
             }
         }
         
