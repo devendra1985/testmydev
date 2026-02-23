@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: taledevendra/my-app:15
+        image: taledevendra/my-app:19
         ports:
           - containerPort: 80
         imagePullPolicy: IfNotPresent
