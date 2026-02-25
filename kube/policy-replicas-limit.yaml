@@ -19,7 +19,7 @@ spec:
         any:
           - resources:
               kinds:
-                - argoproj.io/Rollout
+                - argoproj.io/v1alpha1/Rollout
       validate:
         cel:
           expressions:
