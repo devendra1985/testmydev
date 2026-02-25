@@ -74,8 +74,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: inventory-app
-  annotations:
-    argocd.argoproj.io/sync-options: Prune=false
+  
 spec:
   replicas: 2
   revisionHistoryLimit: 3
