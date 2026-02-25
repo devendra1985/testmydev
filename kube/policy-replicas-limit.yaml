@@ -1,0 +1,27 @@
+# ============================================================
+# Kyverno ClusterPolicy - Max Replicas Limit for Rollouts
+# Ensures Rollout replicas never exceed 2
+# Requires: Kyverno installed in cluster
+# Install: kubectl apply -f https://github.com/kyverno/kyverno/releases/download/v1.12.0/install.yaml
+# ============================================================
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: limit-rollout-replicas
+  annotations:
+    policies.kyverno.io/description: Ensures Rollout replicas do not exceed 2
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: max-replicas-rollout
+      match:
+        any:
+          - resources:
+              kinds:
+                - argoproj.io/Rollout
+      validate:
+        cel:
+          expressions:
+            - message: "Rollout replicas must not exceed 2"
+              expression: "object.spec.replicas == null || object.spec.replicas <= 2"
