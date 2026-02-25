@@ -1,0 +1,39 @@
+# ============================================================
+# Argo CD AppProject - Dev Environment
+# Restricts which repos and namespaces this project can use
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "Dev environment - testmydev inventory app"
+  # Repositories allowed in this project
+  sourceRepos:
+    - https://github.com/devendra1985/testmydev.git
+    - 'https://github.com/devendra1985/*'
+  # Namespaces this project can deploy to
+  destinations:
+    - namespace: dev
+      server: https://kubernetes.default.svc
+    - namespace: default
+      server: https://kubernetes.default.svc
+  # Cluster-scoped resources allowed (optional)
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  # Namespace-scoped resources allowed (default: all)
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: '*'
+    - group: 'argoproj.io'
+      kind: '*'
+    - group: 'apps'
+      kind: '*'
+    - group: 'batch'
+      kind: '*'
+  # Roles for RBAC (optional - configure in Argo CD)
+  # roles: []
