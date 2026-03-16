@@ -76,7 +76,7 @@ metadata:
   name: inventory-app
 
 spec:
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 3
   selector:
     matchLabels:
