@@ -122,6 +122,10 @@ spec:
               name: mysql-secret
               key: mysql-root-password
         imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
         readinessProbe:
           httpGet:
             path: /testmydev/actuator/health
