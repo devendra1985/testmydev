@@ -174,12 +174,12 @@ spec:
 # Ensures at least 1 pod available during voluntary disruptions
 # (node drain, cluster upgrade)
 # ============================================================
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: inventory-app-pdb
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: inventory-app
+# apiVersion: policy/v1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: inventory-app-pdb
+# spec:
+#   minAvailable: 1
+#   selector:
+#     matchLabels:
+#       app: inventory-app
