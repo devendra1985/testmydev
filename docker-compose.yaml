@@ -17,5 +17,26 @@ services:
       timeout: 5s
       retries: 5
 
+  splunk:
+    image: splunk/splunk:9.2.1
+    platform: linux/amd64
+    container_name: splunk
+    ports:
+      - "8000:8000"   # Splunk Web UI  → http://localhost:8000 (admin / changeme)
+      - "8088:8088"   # HTTP Event Collector (HEC)
+    environment:
+      SPLUNK_START_ARGS: --accept-license
+      SPLUNK_PASSWORD: changeme
+      SPLUNK_HEC_TOKEN: my-hec-token   # used when sending logs to HEC
+    volumes:
+      - splunk_data:/opt/splunk/var
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s   # Splunk takes ~60-90s to start
+
 volumes:
   mysql_data:
+  splunk_data:
