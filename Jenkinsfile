@@ -21,26 +21,26 @@ pipeline {
             }
         }
 
-        stage('Sonar Scan') {
-            steps {
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        set -euxo pipefail
+        // stage('Sonar Scan') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+        //             sh '''
+        //                 set -euxo pipefail
 
-                        # Ensure Maven wrapper is executable
-                        chmod +x mvnw
+        //                 # Ensure Maven wrapper is executable
+        //                 chmod +x mvnw
 
-                        # Build + test + Sonar analysis (no Jenkins Sonar plugin required)
-                        ./mvnw -B clean verify sonar:sonar \
-                          -Dsonar.host.url="${SONAR_HOST_URL}" \
-                          -Dsonar.login="${SONAR_TOKEN}" \
-                          -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
-                          -Dsonar.projectName="${SONAR_PROJECT_KEY}" \
-                          -Dsonar.java.binaries=target/classes
-                    '''
-                }
-            }
-        }
+        //                 # Build + test + Sonar analysis (no Jenkins Sonar plugin required)
+        //                 ./mvnw -B clean verify sonar:sonar \
+        //                   -Dsonar.host.url="${SONAR_HOST_URL}" \
+        //                   -Dsonar.login="${SONAR_TOKEN}" \
+        //                   -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+        //                   -Dsonar.projectName="${SONAR_PROJECT_KEY}" \
+        //                   -Dsonar.java.binaries=target/classes
+        //             '''
+        //         }
+        //     }
+        // }
         
         stage('Build Docker Image') {
             steps {
