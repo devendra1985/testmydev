@@ -164,7 +164,7 @@ kind: Service
 metadata:
   name: inventory-app-canary
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: inventory-app
   ports:
