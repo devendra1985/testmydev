@@ -72,7 +72,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     sh """
                         # Update only the app container image in the deployment manifest
-                        sed -i 's|image: taledevendra/my-app:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
+                        sed -i '' 's|image: taledevendra/my-app:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
                         
                         echo "Updated kube/manf.yaml with image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
                         cat kube/manf.yaml
