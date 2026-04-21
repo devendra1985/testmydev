@@ -103,7 +103,7 @@ pipeline {
     
     post {
         always {
-            sh 'docker logout'
+            sh 'docker logout || true'
         }
         success {
             echo "Image pushed successfully: ${DOCKER_IMAGE}:${DOCKER_TAG}"
