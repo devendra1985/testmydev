@@ -76,7 +76,7 @@ metadata:
   name: inventory-app
 
 spec:
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 3
   selector:
     matchLabels:
@@ -85,6 +85,16 @@ spec:
     canary:
       canaryService: inventory-app-canary
       stableService: inventory-app
+      trafficRouting:
+        istio:
+          virtualService:
+            name: inventory-app-vs
+            routes:
+            - primary
+          destinationRule:
+            name: inventory-app-dr
+            canarySubsetName: canary
+            stableSubsetName: stable
       steps:
       - setWeight: 20
       - pause: {duration: 30s}
@@ -105,7 +115,7 @@ spec:
         command: ['sh', '-c', 'until nc -z mysql 3306; do echo "Waiting for MySQL..."; sleep 3; done; echo "MySQL is ready!"']
       containers:
       - name: inventory-app
-        image: taledevendra/my-app:68
+        image: taledevendra/my-app:25
         ports:
           - containerPort: 8087
         env:
@@ -122,10 +132,6 @@ spec:
               name: mysql-secret
               key: mysql-root-password
         imagePullPolicy: Always
-        lifecycle:
-          preStop:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 15"]
         readinessProbe:
           httpGet:
             path: /testmydev/actuator/health
@@ -164,7 +170,7 @@ kind: Service
 metadata:
   name: inventory-app-canary
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: inventory-app
   ports:
@@ -178,12 +184,75 @@ spec:
 # Ensures at least 1 pod available during voluntary disruptions
 # (node drain, cluster upgrade)
 # ============================================================
-# apiVersion: policy/v1
-# kind: PodDisruptionBudget
-# metadata:
-#   name: inventory-app-pdb
-# spec:
-#   minAvailable: 1
-#   selector:
-#     matchLabels:
-#       app: inventory-app
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: inventory-app-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: inventory-app
+---
+# ============================================================
+# Istio Gateway - exposes inventory-app via istio-ingressgateway
+# ============================================================
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: inventory-app-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+# ============================================================
+# Istio DestinationRule - defines stable & canary subsets
+# Argo Rollouts adds/removes pod-hash labels on these subsets
+# ============================================================
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: inventory-app-dr
+spec:
+  host: inventory-app
+  subsets:
+  - name: stable
+    labels:
+      app: inventory-app
+  - name: canary
+    labels:
+      app: inventory-app
+---
+# ============================================================
+# Istio VirtualService - routes traffic between subsets
+# Weights below are managed by Argo Rollouts at each canary step
+# ============================================================
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: inventory-app-vs
+spec:
+  hosts:
+  - inventory-app
+  - inventory-app.default.svc.cluster.local
+  gateways:
+  - inventory-app-gateway
+  - mesh
+  http:
+  - name: primary
+    route:
+    - destination:
+        host: inventory-app
+        subset: stable
+      weight: 100
+    - destination:
+        host: inventory-app
+        subset: canary
+      weight: 0

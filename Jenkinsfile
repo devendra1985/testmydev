@@ -1,4 +1,4 @@
-pipeline {
+    pipeline {
     agent any
     parameters {
         string(name: 'VERSION', defaultValue: '1.0', description: 'App version')
