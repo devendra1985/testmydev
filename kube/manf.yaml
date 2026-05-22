@@ -116,7 +116,7 @@ spec:
         command: ['sh', '-c', 'until nc -z mysql 3306; do echo "Waiting for MySQL..."; sleep 3; done; echo "MySQL is ready!"']
       containers:
       - name: inventory-app
-        image: taledevendra/my-app:25
+        image: taledevendra/my-app:74
         ports:
           - containerPort: 8087
         env:
