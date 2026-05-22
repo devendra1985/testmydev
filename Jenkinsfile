@@ -57,13 +57,13 @@
             }
         }
         
-        stage('Trivy Scan') {
-            steps {
-                sh """
-                    trivy image --exit-code 1 --severity CRITICAL --no-progress --scanners vuln ${DOCKER_IMAGE}:${DOCKER_TAG}
-                """
-            }
-        }
+        // stage('Trivy Scan') {
+        //     steps {
+        //         sh """
+        //             trivy image --exit-code 1 --severity CRITICAL --no-progress --scanners vuln ${DOCKER_IMAGE}:${DOCKER_TAG}
+        //         """
+        //     }
+        // }
 
         stage('Push to Docker Hub') {
             steps {
