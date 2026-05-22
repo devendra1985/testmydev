@@ -1,5 +1,7 @@
     pipeline {
-    agent any
+    // Pin to the controller's built-in node; that container has docker.sock
+    // mounted (Docker-out-of-Docker). The default inbound agent doesn't.
+    agent { label 'built-in' }
     parameters {
         string(name: 'VERSION', defaultValue: '1.0', description: 'App version')
     }
@@ -80,7 +82,7 @@
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     sh """
                         # Update only the app container image in the deployment manifest
-                        sed -i '' 's|image: taledevendra/my-app:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
+                        sed -i 's|image: taledevendra/my-app:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
                         
                         echo "Updated kube/manf.yaml with image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
                         cat kube/manf.yaml
