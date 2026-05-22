@@ -243,6 +243,7 @@ spec:
   hosts:
   - inventory-app
   - inventory-app.default.svc.cluster.local
+  - inventory-app.local
   gateways:
   - inventory-app-gateway
   - mesh
