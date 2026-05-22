@@ -54,8 +54,10 @@
 
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem('user', JSON.stringify({ username: data.username, name: data.name }));
         msg.className = 'msg success';
-        msg.textContent = `Welcome back, ${data.name}!`;
+        msg.textContent = `Welcome back, ${data.name}! Redirecting…`;
+        setTimeout(() => window.location.href = 'dashboard.html', 800);
       } else {
         msg.className = 'msg error';
         msg.textContent = data.message;

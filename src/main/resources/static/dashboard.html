@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard – TestMyDev</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    header { background: #fff; padding: 16px 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 18px; color: #333; }
+    .user-area { display: flex; align-items: center; gap: 16px; font-size: 14px; color: #555; }
+    .logout { padding: 8px 14px; background: #e74c3c; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .logout:hover { background: #c0392b; }
+    main { max-width: 1000px; margin: 32px auto; padding: 0 24px; }
+    .card { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    h2 { margin-bottom: 16px; color: #333; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
+    th { background: #fafafa; color: #555; font-weight: 600; }
+    tr:hover td { background: #f9fbff; }
+    .empty { text-align: center; padding: 32px; color: #999; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .pill.low { background: #fdecea; color: #c0392b; }
+    .pill.ok { background: #e8f5ee; color: #1e7e44; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TestMyDev Inventory</h1>
+    <div class="user-area">
+      <span id="userLabel">Loading…</span>
+      <button class="logout" id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Products</h2>
+      <div id="content"><div class="empty">Loading products…</div></div>
+    </div>
+  </main>
+
+  <script>
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      window.location.href = 'login.html';
+    }
+    const user = JSON.parse(userJson || '{}');
+    document.getElementById('userLabel').textContent = `${user.name} (${user.username})`;
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+    (async () => {
+      const content = document.getElementById('content');
+      try {
+        const res = await fetch('/testmydev/api/products');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const products = await res.json();
+        if (!products.length) {
+          content.innerHTML = '<div class="empty">No products found.</div>';
+          return;
+        }
+        const rows = products.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td>${p.sku ?? ''}</td>
+            <td>${p.name ?? ''}</td>
+            <td>${p.category ?? ''}</td>
+            <td>${p.price != null ? `$${Number(p.price).toFixed(2)}` : ''}</td>
+            <td>
+              ${p.quantity}
+              <span class="pill ${p.quantity < 10 ? 'low' : 'ok'}">${p.quantity < 10 ? 'low stock' : 'in stock'}</span>
+            </td>
+          </tr>
+        `).join('');
+        content.innerHTML = `
+          <table>
+            <thead>
+              <tr><th>ID</th><th>SKU</th><th>Name</th><th>Category</th><th>Price</th><th>Qty</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      } catch (err) {
+        content.innerHTML = `<div class="empty">Failed to load products: ${err.message}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>
