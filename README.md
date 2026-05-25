@@ -1,4 +1,4 @@
-## TestMyDev - Spring Boot Sample Project
+### TestMyDev - Spring Boot Sample Project
 
 A sample Spring Boot application with Maven for testing and development purposes.
 
