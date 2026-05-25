@@ -1,0 +1,42 @@
+name: CI Failure Predictor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  predict:
+    name: Predict CI failure risk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout predictor repo
+        uses: actions/checkout@v4
+        with:
+          repository: devendra1985/ci-failure-predictor
+          # If the predictor repo is private, add:
+          # token: ${{ secrets.PREDICTOR_REPO_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install PyGithub scikit-learn joblib numpy
+
+      - name: Run prediction and post PR comment
+        env:
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER:     ${{ github.event.pull_request.number }}
+          # Set these via Jenkins/webhook integration for real-time values;
+          # defaults to 0 (last build success, no streak) when not supplied.
+          PREV_LABEL:    ${{ vars.PREV_LABEL || '0' }}
+          BUILDS_SINCE:  ${{ vars.BUILDS_SINCE || '0' }}
+        run: python scripts/pr_predict.py
