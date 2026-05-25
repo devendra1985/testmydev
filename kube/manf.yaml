@@ -28,6 +28,8 @@ spec:
     metadata:
       labels:
         app: mysql
+      annotations:
+        proxy.istio.io/config: '{"holdApplicationUntilProxyStarts": true}'
     spec:
       containers:
       - name: mysql
@@ -109,6 +111,8 @@ spec:
     metadata:
       labels:
         app: inventory-app
+      annotations:
+        proxy.istio.io/config: '{"holdApplicationUntilProxyStarts": true}'
     spec:
       initContainers:
       - name: wait-for-mysql
