@@ -112,12 +112,6 @@
             withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
                 sh '''
                     GH_API="https://api.github.com/repos/devendra1985/testmydev/actions/variables"
-<<<<<<< HEAD
-                    AUTH="-H \\"Accept: application/vnd.github+json\\" -H \\"Authorization: Bearer ${GH_TOKEN}\\""
-                    # Build succeeded: reset streak, mark previous as success
-                    curl -s -X PATCH $AUTH "$GH_API/PREV_LABEL"   -d '{"name":"PREV_LABEL","value":"0"}'
-                    curl -s -X PATCH $AUTH "$GH_API/BUILDS_SINCE" -d '{"name":"BUILDS_SINCE","value":"0"}'
-=======
                     # -k skips SSL verification (needed inside Rancher Desktop containers)
                     curl -sk -X PATCH \
                       -H "Accept: application/vnd.github+json" \
@@ -128,7 +122,6 @@
                       -H "Authorization: Bearer ${GH_TOKEN}" \
                       "$GH_API/BUILDS_SINCE" -d '{"name":"BUILDS_SINCE","value":"0"}'
                     echo "GitHub vars updated: PREV_LABEL=0, BUILDS_SINCE=0"
->>>>>>> 1b4af3b (Fix post-build webhook: add -k flag for SSL inside Rancher Desktop)
                 '''
             }
         }
@@ -137,14 +130,6 @@
             withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
                 sh '''
                     GH_API="https://api.github.com/repos/devendra1985/testmydev/actions/variables"
-<<<<<<< HEAD
-                    AUTH="-H \\"Accept: application/vnd.github+json\\" -H \\"Authorization: Bearer ${GH_TOKEN}\\""
-                    # Read current streak and increment
-                    CURRENT=$(curl -s $AUTH "$GH_API/BUILDS_SINCE" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-                    NEXT=$((CURRENT + 1))
-                    curl -s -X PATCH $AUTH "$GH_API/PREV_LABEL"   -d '{"name":"PREV_LABEL","value":"1"}'
-                    curl -s -X PATCH $AUTH "$GH_API/BUILDS_SINCE" -d "{\"name\":\"BUILDS_SINCE\",\"value\":\"${NEXT}\"}"
-=======
                     CURRENT=$(curl -sk \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
@@ -159,7 +144,6 @@
                       -H "Authorization: Bearer ${GH_TOKEN}" \
                       "$GH_API/BUILDS_SINCE" -d "{\"name\":\"BUILDS_SINCE\",\"value\":\"${NEXT}\"}"
                     echo "GitHub vars updated: PREV_LABEL=1, BUILDS_SINCE=${NEXT}"
->>>>>>> 1b4af3b (Fix post-build webhook: add -k flag for SSL inside Rancher Desktop)
                 '''
             }
         }
