@@ -1,0 +1,63 @@
+{
+  "cv_roc_auc_mean": 0.6157,
+  "cv_roc_auc_std": 0.149,
+  "train_roc_auc": 0.9996,
+  "classification_report": {
+    "success": {
+      "precision": 1.0,
+      "recall": 0.9130434782608695,
+      "f1-score": 0.9545454545454546,
+      "support": 23.0
+    },
+    "failure": {
+      "precision": 0.9607843137254902,
+      "recall": 1.0,
+      "f1-score": 0.98,
+      "support": 49.0
+    },
+    "accuracy": 0.9722222222222222,
+    "macro avg": {
+      "precision": 0.9803921568627452,
+      "recall": 0.9565217391304348,
+      "f1-score": 0.9672727272727273,
+      "support": 72.0
+    },
+    "weighted avg": {
+      "precision": 0.9733115468409586,
+      "recall": 0.9722222222222222,
+      "f1-score": 0.9718686868686868,
+      "support": 72.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      21,
+      2
+    ],
+    [
+      0,
+      49
+    ]
+  ],
+  "feature_importance_shap": {
+    "additions": 1.335601,
+    "build_hour": 1.062385,
+    "prev_label": 0.961278,
+    "builds_since_last_success": 0.64077,
+    "touches_kube": 0.375928,
+    "deletions": 0.231587,
+    "changed_files": 0.229166,
+    "is_weekend": 0.136481,
+    "commit_count": 0.12876,
+    "touches_infra": 0.088659,
+    "touches_src": 0.076685,
+    "is_off_hours": 0.046452,
+    "touches_tests": 0.026156,
+    "is_direct_push": 0.0,
+    "review_count": 0.0,
+    "requested_reviewers": 0.0,
+    "has_pr": 0.0
+  },
+  "n_samples": 72,
+  "n_failures": 49
+}
