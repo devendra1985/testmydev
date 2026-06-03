@@ -14,7 +14,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Column(nullable = false)
@@ -28,6 +28,12 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "saml_name_id")
+    private String samlNameId;
+
+    @Column(name = "saml_provider")
+    private String samlProvider;
 
     public User() {
         this.createdAt = LocalDateTime.now();
@@ -53,4 +59,10 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getSamlNameId() { return samlNameId; }
+    public void setSamlNameId(String samlNameId) { this.samlNameId = samlNameId; }
+
+    public String getSamlProvider() { return samlProvider; }
+    public void setSamlProvider(String samlProvider) { this.samlProvider = samlProvider; }
 }
