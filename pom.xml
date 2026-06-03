@@ -113,6 +113,14 @@
 			<name>Splunk Releases</name>
 			<url>https://splunk.jfrog.io/splunk/ext-releases-local</url>
 		</repository>
+		<repository>
+			<id>shibboleth</id>
+			<name>Shibboleth Repository</name>
+			<url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
