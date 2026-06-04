@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
-import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -24,15 +24,24 @@ public class SecurityConfig {
 
     @Bean
     public RelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
-        String metadataUri = keycloakHost + "/realms/" + keycloakRealm + "/protocol/saml/descriptor";
+        String idpBase = keycloakHost + "/realms/" + keycloakRealm + "/protocol/saml";
 
-        RelyingPartyRegistration registration = RelyingPartyRegistrations
-                .fromMetadataLocation(metadataUri)
-                .registrationId("keycloak")
-                .entityId("http://localhost:8087/testmydev")
-                .assertionConsumerServiceLocation("http://localhost:8087/testmydev/login/saml2/sso/keycloak")
-                .singleLogoutServiceLocation("http://localhost:8087/testmydev/logout/saml2/slo")
-                .singleLogoutServiceResponseLocation("http://localhost:8087/testmydev/logout/saml2/slo")
+        RelyingPartyRegistration registration = RelyingPartyRegistration
+                .withRegistrationId("keycloak")
+                .entityId("{baseUrl}/testmydev")
+                .assertionConsumerServiceLocation("{baseUrl}/login/saml2/sso/{registrationId}")
+                .assertionConsumerServiceBinding(Saml2MessageBinding.POST)
+                .singleLogoutServiceLocation("{baseUrl}/logout/saml2/slo")
+                .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
+                .singleLogoutServiceBinding(Saml2MessageBinding.POST)
+                .assertingPartyDetails(party -> party
+                        .entityId(keycloakHost + "/realms/" + keycloakRealm)
+                        .singleSignOnServiceLocation(idpBase)
+                        .singleSignOnServiceBinding(Saml2MessageBinding.POST)
+                        .singleLogoutServiceLocation(idpBase)
+                        .singleLogoutServiceBinding(Saml2MessageBinding.POST)
+                        .wantAuthnRequestsSigned(false)
+                )
                 .build();
 
         return new InMemoryRelyingPartyRegistrationRepository(registration);
