@@ -28,11 +28,11 @@ public class SecurityConfig {
 
         RelyingPartyRegistration registration = RelyingPartyRegistration
                 .withRegistrationId("keycloak")
-                .entityId("{baseUrl}/testmydev")
-                .assertionConsumerServiceLocation("{baseUrl}/login/saml2/sso/{registrationId}")
+                .entityId("http://localhost:8087/testmydev")
+                .assertionConsumerServiceLocation("http://localhost:8087/testmydev/login/saml2/sso/keycloak")
                 .assertionConsumerServiceBinding(Saml2MessageBinding.POST)
-                .singleLogoutServiceLocation("{baseUrl}/logout/saml2/slo")
-                .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
+                .singleLogoutServiceLocation("http://localhost:8087/testmydev/logout/saml2/slo")
+                .singleLogoutServiceResponseLocation("http://localhost:8087/testmydev/logout/saml2/slo")
                 .singleLogoutServiceBinding(Saml2MessageBinding.POST)
                 .assertingPartyDetails(party -> party
                         .entityId(keycloakHost + "/realms/" + keycloakRealm)

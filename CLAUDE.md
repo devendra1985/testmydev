@@ -12,9 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 java -jar target/testmydev-0.0.1-SNAPSHOT.jar  # Run JAR directly
 ```
 
-**Docker:**
+**Docker (app + MySQL):**
 ```bash
-docker-compose up             # Start app + MySQL locally
+docker-compose up
 docker build -t taledevendra/my-app:<tag> .
 ```
 
@@ -27,21 +27,37 @@ docker build -t taledevendra/my-app:<tag> .
 
 Standard Spring Boot layered architecture: `Controller → Service → Repository → JPA Entity`
 
-- **Controllers** (`controller/`): `HelloController` (greeting/health endpoints), `ProductController` (full CRUD for products)
-- **Service** (`service/ProductService`): Business logic — CRUD, name search, category filter, low-stock alerts
-- **Repository** (`repository/ProductRepository`): Spring Data JPA with custom query methods
-- **Models** (`model/`): `Product` (inventory entity with SKU, category, price, quantity), `User` (id, name, email)
+- **Controllers** (`controller/`): `HelloController` (greeting/health), `ProductController` (product CRUD), `AuthController` (form-based signup/login REST API at `/api/auth/*`)
+- **Services** (`service/`): `ProductService` (CRUD, search, low-stock), `UserService` (form auth — plain-text password comparison), `SamlUserService` (auto-provisions users on first SAML login via `ApplicationListener<AuthenticationSuccessEvent>`)
+- **Security** (`config/SecurityConfig.java`): Spring Security 6 with SAML2 SSO. The `RelyingPartyRegistrationRepository` bean is built statically (no network call at startup) using `RelyingPartyRegistration.withRegistrationId()`. Keycloak endpoints are configured from `KEYCLOAK_HOST` / `KEYCLOAK_REALM` env vars (defaults: `http://localhost:8080` / `myrealm`).
+- **Models** (`model/`): `Product` (inventory: SKU, category, price, quantity), `User` (auth: username, password nullable for SAML users, samlNameId, samlProvider)
+
+## Authentication: Two Parallel Flows
+
+1. **Form login (REST):** `POST /api/auth/login` → `UserService.login()` → localStorage on client. CSRF disabled for `/api/auth/**`.
+2. **SAML SSO:** `GET /saml2/authenticate/keycloak` → Keycloak → POST to `/login/saml2/sso/keycloak` → `SamlUserService` provisions/links user → redirect to `dashboard.html`.
+
+The login page (`src/main/resources/static/login.html`) has both a form and a "Sign in with Keycloak SSO" button.
 
 ## Data
 
-- **Local dev:** H2 in-memory database, auto-initialized from `src/main/resources/schema.sql` and `data.sql` (10 sample products)
-- **Production:** MySQL 8.0 at `jdbc:mysql://localhost:3306/inventory_db`
-- JPA DDL auto-mode is enabled; Hibernate formats SQL in logs
+- **Local dev:** MySQL at `localhost:3306/inventory_db` (override via `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`). Schema auto-updated by Hibernate (`ddl-auto=update`), seeded by `schema.sql` + `data.sql`.
+- **H2:** Not the default — MySQL connector is used even locally. Use `docker-compose up` to start MySQL.
 
 ## Deployment Pipeline
 
-**CI/CD:** Jenkins (`Jenkinsfile`) → SonarQube analysis → Docker build/push to Docker Hub → updates image tag in `kube/manf.yaml`
+**CI/CD:** Jenkins (`Jenkinsfile`) → Docker build/push to Docker Hub (`taledevendra/my-app:<BUILD_NUMBER>`) → updates image tag in `kube/manf.yaml` → pushes to git.
 
-**GitOps:** ArgoCD (`argocd/application.yaml`) watches the `kube/` folder on `main` branch and auto-syncs to the cluster
+**GitOps:** ArgoCD (`argocd/application.yaml`) watches `kube/` on `main` and auto-syncs to cluster.
 
-**Kubernetes** (`kube/manf.yaml`): Uses Argo Rollouts with canary strategy (20% → 40% → 60% → 80%), MySQL deployment, readiness/liveness probes at `/testmydev/actuator/health`, PodDisruptionBudget requiring min 1 available pod
+**Kubernetes** (`kube/manf.yaml`): Argo Rollouts canary strategy (20% → 40% → 60% → 80%), MySQL deployment, readiness/liveness probes at `/testmydev/actuator/health`, PodDisruptionBudget min 1 available.
+
+## SAML / Keycloak Local Setup
+
+Start Keycloak:
+```bash
+docker run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin \
+  quay.io/keycloak/keycloak:latest start-dev
+```
+
+In Keycloak admin (`http://localhost:8080`): create realm `myrealm`, create SAML client with entity ID `http://localhost:8087/testmydev`, ACS URL `http://localhost:8087/testmydev/login/saml2/sso/keycloak`. SP metadata available at `http://localhost:8087/testmydev/saml2/metadata` once the app is running.
