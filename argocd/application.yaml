@@ -1,6 +1,8 @@
 # ============================================================
 # Argo CD Application - demosvc (Inventory App)
-# Deploys kube/manf.yaml from Git to dev namespace
+# GitOps: deploys the kustomize dev overlay from the separate
+# config repo (testmydev-config) to the dev namespace.
+# Kustomize is auto-detected from the kustomization.yaml at path.
 # ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -12,9 +14,9 @@ metadata:
 spec:
   project: dev
   source:
-    repoURL: https://github.com/devendra1985/testmydev.git
+    repoURL: https://github.com/devendra1985/testmydev-config.git
     targetRevision: main
-    path: kube
+    path: overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

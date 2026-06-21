@@ -11,6 +11,10 @@
         DOCKER_IMAGE = 'taledevendra/my-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         GIT_REPO = 'github.com/devendra1985/testmydev.git'
+        // GitOps: Kubernetes manifests live in a separate config repo. CI bumps
+        // the image tag there; ArgoCD syncs it to the cluster.
+        CONFIG_REPO = 'github.com/devendra1985/testmydev-config.git'
+        CONFIG_OVERLAY = 'overlays/dev'
         // SonarQube (self-hosted) defaults. Override at job level if needed.
         SONAR_HOST_URL = 'http://host.docker.internal:9002'
         SONAR_PROJECT_KEY = 'testmydev'
@@ -77,26 +81,29 @@
             }
         }
 
-        stage('Update Manifest & Push to Git') {
+        stage('Bump Image in Config Repo') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     sh """
-                        # Update only the app container image in the deployment manifest
-                        sed -i 's|image: taledevendra/my-app:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' kube/manf.yaml
+                        set -euxo pipefail
 
-                        echo "Updated kube/manf.yaml with image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        cat kube/manf.yaml
+                        # Clone the GitOps config repo (manifests live here, not in the app repo)
+                        rm -rf config-repo
+                        git clone https://\${GIT_USER}:\${GIT_TOKEN}@${CONFIG_REPO} config-repo
 
-                        # Configure git
+                        # Update the image tag via kustomize (structured, no brittle sed)
+                        cd config-repo/${CONFIG_OVERLAY}
+                        kustomize edit set image ${DOCKER_IMAGE}=${DOCKER_IMAGE}:${DOCKER_TAG}
+                        echo "Updated ${CONFIG_OVERLAY}/kustomization.yaml:"
+                        cat kustomization.yaml
+
+                        # Commit & push the tag bump back to the config repo
+                        cd \${WORKSPACE}/config-repo
                         git config user.name "Jenkins"
                         git config user.email "jenkins@example.com"
-
-                        # Stage and commit the change
-                        git add kube/manf.yaml
-                        git commit -m "Update deployment image to ${DOCKER_IMAGE}:${DOCKER_TAG}"
-
-                        # Push to main branch using token-authenticated URL
-                        git push https://\${GIT_USER}:\${GIT_TOKEN}@${GIT_REPO} HEAD:main
+                        git add ${CONFIG_OVERLAY}/kustomization.yaml
+                        git commit -m "Update inventory-app image to ${DOCKER_IMAGE}:${DOCKER_TAG}" || { echo "No image change to commit"; exit 0; }
+                        git push https://\${GIT_USER}:\${GIT_TOKEN}@${CONFIG_REPO} HEAD:main
                     """
                 }
             }

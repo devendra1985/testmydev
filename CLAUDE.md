@@ -46,11 +46,11 @@ The login page (`src/main/resources/static/login.html`) has both a form and a "S
 
 ## Deployment Pipeline
 
-**CI/CD:** Jenkins (`Jenkinsfile`) → Docker build/push to Docker Hub (`taledevendra/my-app:<BUILD_NUMBER>`) → updates image tag in `kube/manf.yaml` → pushes to git.
+**CI/CD:** Jenkins (`Jenkinsfile`) → Docker build/push to Docker Hub (`taledevendra/my-app:<BUILD_NUMBER>`) → clones the **separate config repo** (`testmydev-config`) and runs `kustomize edit set image` in `overlays/dev` → commits/pushes the tag bump there. The app repo no longer contains Kubernetes manifests. Requires the `kustomize` CLI on the Jenkins agent.
 
-**GitOps:** ArgoCD (`argocd/application.yaml`) watches `kube/` on `main` and auto-syncs to cluster.
+**GitOps:** ArgoCD (`argocd/application.yaml`) watches `overlays/dev` in the `testmydev-config` repo on `main` and auto-syncs to cluster. Kustomize is auto-detected from `kustomization.yaml`.
 
-**Kubernetes** (`kube/manf.yaml`): Argo Rollouts canary strategy (20% → 40% → 60% → 80%), MySQL deployment, readiness/liveness probes at `/testmydev/actuator/health`, PodDisruptionBudget min 1 available.
+**Kubernetes** (in `testmydev-config`): Kustomize `base/` (env-agnostic) + `overlays/dev/` (namespace + image tag). Resources: Argo Rollouts canary strategy (20% → 40% → 60% → 80%), MySQL deployment, Istio Gateway/DestinationRule/VirtualService, readiness/liveness probes at `/testmydev/actuator/health`, PodDisruptionBudget min 1 available. The image transformer rewrites the Rollout's image via Kustomize's wildcard `[noKind]` fieldspecs (no custom config needed).
 
 ## SAML / Keycloak Local Setup
 
