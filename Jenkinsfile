@@ -137,10 +137,14 @@
             withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
                 sh '''
                     GH_API="https://api.github.com/repos/devendra1985/testmydev/actions/variables"
+                    # Extract the "value" field with sed (no python3 on the agent).
                     CURRENT=$(curl -sk \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
-                      "$GH_API/BUILDS_SINCE" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+                      "$GH_API/BUILDS_SINCE" \
+                      | sed -n 's/.*"value"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+                    # Default to 0 if the variable is missing or unparseable.
+                    CURRENT=${CURRENT:-0}
                     NEXT=$((CURRENT + 1))
                     curl -sk -X PATCH \
                       -H "Accept: application/vnd.github+json" \
