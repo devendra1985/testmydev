@@ -139,11 +139,14 @@
                     GH_API="https://api.github.com/repos/devendra1985/testmydev/actions/variables"
                     # Extract the numeric "value" field without python3 (not on the agent)
                     # and without backslash escapes (Groovy would reject them at compile time).
-                    CURRENT=$(curl -sk \
+                    # The grep is allowed to fail (|| true) so an empty/absent value or a
+                    # non-2xx response body does not abort this post step under set -e.
+                    RESP=$(curl -sk \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
-                      "$GH_API/BUILDS_SINCE" \
-                      | grep -o '"value":"[0-9]*"' | grep -o '[0-9]*')
+                      "$GH_API/BUILDS_SINCE")
+                    echo "BUILDS_SINCE response: $RESP"
+                    CURRENT=$(echo "$RESP" | tr -d ' ' | grep -o '"value":"[0-9]*"' | grep -o '[0-9][0-9]*' || true)
                     # Default to 0 if the variable is missing or unparseable.
                     CURRENT=${CURRENT:-0}
                     NEXT=$((CURRENT + 1))
