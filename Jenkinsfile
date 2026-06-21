@@ -150,6 +150,10 @@
                     # Default to 0 if the variable is missing or unparseable.
                     CURRENT=${CURRENT:-0}
                     NEXT=$((CURRENT + 1))
+                    # Build the JSON payload with single quotes around the literal parts and
+                    # $NEXT concatenated outside them, so the double quotes reach curl intact
+                    # (escaped \" inside a Groovy "..." string collapse and break the JSON).
+                    BUILDS_BODY='{"name":"BUILDS_SINCE","value":"'"$NEXT"'"}'
                     curl -sk -X PATCH \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
@@ -157,7 +161,7 @@
                     curl -sk -X PATCH \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
-                      "$GH_API/BUILDS_SINCE" -d "{\"name\":\"BUILDS_SINCE\",\"value\":\"${NEXT}\"}"
+                      "$GH_API/BUILDS_SINCE" -d "$BUILDS_BODY"
                     echo "GitHub vars updated: PREV_LABEL=1, BUILDS_SINCE=${NEXT}"
                 '''
             }
