@@ -137,12 +137,13 @@
             withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
                 sh '''
                     GH_API="https://api.github.com/repos/devendra1985/testmydev/actions/variables"
-                    # Extract the "value" field with sed (no python3 on the agent).
+                    # Extract the numeric "value" field without python3 (not on the agent)
+                    # and without backslash escapes (Groovy would reject them at compile time).
                     CURRENT=$(curl -sk \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer ${GH_TOKEN}" \
                       "$GH_API/BUILDS_SINCE" \
-                      | sed -n 's/.*"value"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+                      | grep -o '"value":"[0-9]*"' | grep -o '[0-9]*')
                     # Default to 0 if the variable is missing or unparseable.
                     CURRENT=${CURRENT:-0}
                     NEXT=$((CURRENT + 1))
